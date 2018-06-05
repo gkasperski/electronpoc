@@ -14,6 +14,19 @@ import { app, BrowserWindow } from "electron";
 import MenuBuilder from "./menu";
 import api from "./api";
 
+require('fs')
+  .readdirSync(normalizedPath)
+  .forEach(file => {
+    console.log(file);
+    const plugin = require(`./plugins/${file}`).init(api); //eslint-disable-line
+    plugin.run();
+  });
+
+setTimeout(() => {
+  console.log('event emmited');
+  api.event.emit('scanning', 'some data');
+}, 10000);
+
 let mainWindow = null;
 
 if (process.env.NODE_ENV === "production") {
