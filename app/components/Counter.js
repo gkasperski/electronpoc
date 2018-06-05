@@ -3,6 +3,10 @@ import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './Counter.css';
 
+const electron = require("electron");
+
+const { ipcRenderer } = electron;
+
 type Props = {
   increment: () => void,
   incrementIfOdd: () => void,
@@ -13,6 +17,13 @@ type Props = {
 
 export default class Counter extends Component<Props> {
   props: Props;
+
+  componentDidMount() {
+    ipcRenderer.on("item:add", (e, item) => {
+      this.props.increment();
+      console.log(item);
+    });
+  }
 
   render() {
     const {
