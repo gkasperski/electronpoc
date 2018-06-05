@@ -11,30 +11,24 @@
  * @flow
  */
 import { app, BrowserWindow } from 'electron';
-import EventEmitter from 'events';
+import childProcess from 'child_process';
+import path from 'path';
 import MenuBuilder from './menu';
 
-const normalizedPath = require('path').join(__dirname, 'plugins');
+// creating child process for plugins
 
-const api = {
-  wyswietlTekst(tekst) {
-    console.log(tekst);
-  },
-  event: new EventEmitter()
-};
+const pluginsProcess = childProcess.fork(path.join(__dirname, 'pluginsRunner'));
 
-require('fs')
-  .readdirSync(normalizedPath)
-  .forEach(file => {
-    console.log(file);
-    const plugin = require(`./plugins/${file}`).init(api); //eslint-disable-line
-    plugin.run();
-  });
-
+// example of emitting events
 setTimeout(() => {
-  console.log('event emmited');
-  api.event.emit('scanning', 'some data');
+  console.log('event emmiting ...');
+  pluginsProcess.send({ eventName: 'scanning', data: 'some data' });
 }, 10000);
+
+// listening on events from pluginsRunner
+pluginsProcess.on('message', m => {
+  console.log('PARENT got message:', m);
+});
 
 let mainWindow = null;
 
@@ -48,7 +42,6 @@ if (
   process.env.DEBUG_PROD === 'true'
 ) {
   require('electron-debug')();
-  const path = require('path');
   const p = path.join(__dirname, '..', 'app', 'node_modules');
   require('module').globalPaths.push(p);
 }
