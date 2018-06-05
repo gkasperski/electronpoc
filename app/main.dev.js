@@ -11,7 +11,30 @@
  * @flow
  */
 import { app, BrowserWindow } from 'electron';
+import EventEmitter from 'events';
 import MenuBuilder from './menu';
+
+const normalizedPath = require('path').join(__dirname, 'plugins');
+
+const api = {
+  wyswietlTekst(tekst) {
+    console.log(tekst);
+  },
+  event: new EventEmitter()
+};
+
+require('fs')
+  .readdirSync(normalizedPath)
+  .forEach(file => {
+    console.log(file);
+    const plugin = require(`./plugins/${file}`).init(api); //eslint-disable-line
+    plugin.run();
+  });
+
+setTimeout(() => {
+  console.log('event emmited');
+  api.event.emit('scanning', 'some data');
+}, 10000);
 
 let mainWindow = null;
 
